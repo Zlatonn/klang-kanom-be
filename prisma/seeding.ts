@@ -4,10 +4,11 @@ const prisma = new PrismaClient();
 
 async function main() {
   await prisma.user.createMany({
+    skipDuplicates: true,
     data: [
       {
         id: 1,
-        username: 'testAdmin',
+        username: 'testadmin',
         password: 'passw0rd',
         firstName: 'test',
         lastName: 'admin',
@@ -16,11 +17,11 @@ async function main() {
       },
       {
         id: 2,
-        username: 'testUser',
+        username: 'testuser',
         password: 'passw0rd',
         firstName: 'test',
         lastName: 'user',
-        phoneNumber: '000-000-0000',
+        phoneNumber: '000-000-0001',
         role: 'USER',
       },
     ],

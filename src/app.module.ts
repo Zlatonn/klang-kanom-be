@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './modules/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -8,7 +7,6 @@ import { PrismaModule } from './modules/prisma/prisma.module';
       isGlobal: true,
       envFilePath: ['.env'],
     }),
-    PrismaModule,
   ],
   controllers: [],
   providers: [],
