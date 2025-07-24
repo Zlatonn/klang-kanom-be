@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ResponseInterceptor } from './utils/interceptors/response.interceptor';
+import { ExceptionsFilter } from './utils/filters/exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +16,10 @@ async function bootstrap() {
       forbidNonWhitelisted: false, // If any un expected properties are included, it will throw error
     }),
   );
+
+  // using global interceptor, filter
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new ExceptionsFilter());
 
   const configService = app.get(ConfigService);
   const port = configService.get('PORT') || 3000;
