@@ -7,6 +7,7 @@ import { LoginDto } from './dtos/login.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { RegistorDTO } from './dtos/registor.dto';
 
 @Injectable()
 export class AuthService {
@@ -39,5 +40,35 @@ export class AuthService {
       accessToken,
       ...payload,
     };
+  }
+
+  async registor(req: RegistorDTO) {
+    const { username, password, firstName, lastName, phoneNumber, role } = req;
+
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (user) {
+      throw new BadRequestException('Username is already exists.');
+    }
+
+    const hashPassword = await bcrypt.hash(
+      password,
+      Number(process.env.SALT_ROUND),
+    );
+
+    const userData = {
+      username,
+      password: hashPassword,
+      firstName,
+      lastName,
+      phoneNumber,
+      role,
+    };
+
+    return await this.prismaService.user.create({ data: userData });
   }
 }
