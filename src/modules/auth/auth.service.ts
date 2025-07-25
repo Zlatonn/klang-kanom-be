@@ -1,0 +1,43 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { LoginDto } from './dtos/login.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async login(req: LoginDto) {
+    const { username, password } = req;
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Username is not found.');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Password is incorrect.');
+    }
+
+    const payload = { id: user.id, username: user.username, role: user.role };
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return {
+      accessToken,
+      ...payload,
+    };
+  }
+}
