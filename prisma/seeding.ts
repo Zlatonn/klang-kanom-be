@@ -5,8 +5,14 @@ const prisma = new PrismaClient();
 
 async function main() {
   const saltRounds = Number(process.env.SALT_ROUND);
-  const adminPassword = await bcrypt.hash('password', saltRounds);
-  const userPassword = await bcrypt.hash('password', saltRounds);
+  const adminPassword = await bcrypt.hash(
+    '543c5507f72c9edc5a0fb937dd1409e5667d8d7d',
+    saltRounds,
+  );
+  const userPassword = await bcrypt.hash(
+    '543c5507f72c9edc5a0fb937dd1409e5667d8d7d',
+    saltRounds,
+  );
 
   await prisma.user.createMany({
     skipDuplicates: true,
