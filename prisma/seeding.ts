@@ -1,15 +1,26 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const saltRounds = Number(process.env.SALT_ROUND);
+  const adminPassword = await bcrypt.hash(
+    '543c5507f72c9edc5a0fb937dd1409e5667d8d7d',
+    saltRounds,
+  );
+  const userPassword = await bcrypt.hash(
+    '543c5507f72c9edc5a0fb937dd1409e5667d8d7d',
+    saltRounds,
+  );
+
   await prisma.user.createMany({
     skipDuplicates: true,
     data: [
       {
         id: 1,
         username: 'testadmin',
-        password: 'passw0rd',
+        password: adminPassword,
         firstName: 'test',
         lastName: 'admin',
         phoneNumber: '000-000-0000',
@@ -18,7 +29,7 @@ async function main() {
       {
         id: 2,
         username: 'testuser',
-        password: 'passw0rd',
+        password: userPassword,
         firstName: 'test',
         lastName: 'user',
         phoneNumber: '000-000-0001',
