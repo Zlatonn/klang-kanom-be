@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLE_KEY } from '../decorators/role.decorator';
+import { Role } from '@prisma/client';
+import { UserPayload } from 'src/interfaces/user.payload.interface';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -22,14 +24,10 @@ export class RoleGuard implements CanActivate {
     }
 
     const req = context.switchToHttp().getRequest();
-    const user = req.user;
+    const user: UserPayload = req.user;
 
-    if (!user || !user.role) {
-      throw new ForbiddenException('User has not role');
-    }
-
-    const hasAcces = requireRole.include(user.role);
-    if (!hasAcces) {
+    const hasAccess = requireRole.include(user.role);
+    if (!hasAccess) {
       throw new ForbiddenException('Insufficient role');
     }
 
