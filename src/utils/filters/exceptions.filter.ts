@@ -14,6 +14,8 @@ export class ExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    console.log(exception);
+
     let httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal Servcer Error.';
 
