@@ -8,13 +8,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dtos/register.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private saltRound: string;
   constructor(
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.saltRound = this.config.getOrThrow<string>('SALT_ROUND');
+  }
 
   async login(req: LoginDto) {
     const { username, password } = req;
@@ -55,11 +60,7 @@ export class AuthService {
       throw new BadRequestException('Username is already exists.');
     }
 
-    const hashPassword = await bcrypt.hash(
-      password,
-      Number(process.env.SALT_ROUND),
-    );
-
+    const hashPassword = await bcrypt.hash(password, Number(this.saltRound));
     const userData = {
       username,
       password: hashPassword,
