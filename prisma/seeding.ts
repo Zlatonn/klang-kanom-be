@@ -1,18 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
   const saltRounds = Number(process.env.SALT_ROUND);
-  const adminPassword = await bcrypt.hash(
-    '543c5507f72c9edc5a0fb937dd1409e5667d8d7d',
-    saltRounds,
-  );
-  const userPassword = await bcrypt.hash(
-    '543c5507f72c9edc5a0fb937dd1409e5667d8d7d',
-    saltRounds,
-  );
+  const defaultPassword = process.env.DEFAULT_PASSWORD;
+
+  if (!saltRounds || !defaultPassword) {
+    throw new Error('.env is not set completely');
+  }
+
+  const adminPassword = await bcrypt.hash(defaultPassword, saltRounds);
+  const userPassword = await bcrypt.hash(defaultPassword, saltRounds);
 
   await prisma.user.createMany({
     skipDuplicates: true,
@@ -24,7 +24,7 @@ async function main() {
         firstName: 'test',
         lastName: 'admin',
         phoneNumber: '000-000-0000',
-        role: 'ADMIN',
+        role: Role.ADMIN,
       },
       {
         id: 2,
@@ -33,7 +33,7 @@ async function main() {
         firstName: 'test',
         lastName: 'user',
         phoneNumber: '000-000-0001',
-        role: 'USER',
+        role: Role.USER,
       },
     ],
   });

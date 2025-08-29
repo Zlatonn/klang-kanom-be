@@ -9,13 +9,18 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBlIC_KEY } from '../decorators/skip-auth';
 import { UserPayload } from 'src/interfaces/user.payload.interface';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+  private jwtSecret: string;
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.jwtSecret = this.config.getOrThrow<string>('JWT_SECRET');
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBlIC_KEY, [
@@ -35,7 +40,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const payload: UserPayload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret: this.jwtSecret,
       });
 
       request.user = payload;
