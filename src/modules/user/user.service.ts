@@ -14,18 +14,22 @@ import {
   getSkipValue,
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   private saltRound: string;
-  private defaultPassword: string;
+  private adminPassword: string;
+  private userPassword: string;
   constructor(
     private readonly prismaService: PrismaService,
     private readonly config: ConfigService,
   ) {
     this.saltRound = this.config.getOrThrow<string>('SALT_ROUND');
-    this.defaultPassword = this.config.getOrThrow<string>('DEFAULT_PASSWORD');
+    this.adminPassword = this.config.getOrThrow<string>(
+      'DEFAULT_ADMIN_PASSWORD',
+    );
+    this.userPassword = this.config.getOrThrow<string>('DEFAULT_USER_PASSWORD');
   }
 
   // Get list user service
@@ -185,6 +189,42 @@ export class UserService {
     });
   }
 
+  async resetPassword(id: number) {
+    const user = await this.prismaService.user.findUnique({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User is not found.');
+    }
+
+    let defaultPassword: string;
+
+    switch (user.role) {
+      case Role.ADMIN:
+        defaultPassword = this.adminPassword;
+        break;
+      case Role.USER:
+        defaultPassword = this.userPassword;
+        break;
+      default:
+        throw new BadRequestException('Unsupported role for password reset.');
+    }
+
+    const hashPassword = await bcrypt.hash(
+      defaultPassword,
+      Number(this.saltRound),
+    );
+
+    return await this.prismaService.user.update({
+      where: { id },
+      data: { password: hashPassword },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   async changePassword(id: number, req: ChangePasswordDto) {
     const { oldPassword, newPassword } = req;
 
@@ -215,29 +255,6 @@ export class UserService {
       data: {
         password: hashNewPassword,
       },
-      omit: {
-        password: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
-  async resetPassword(id: number) {
-    const user = await this.prismaService.user.findUnique({ where: { id } });
-
-    if (!user) {
-      throw new NotFoundException('User is not found.');
-    }
-
-    const hashPassword = await bcrypt.hash(
-      this.defaultPassword,
-      Number(this.saltRound),
-    );
-
-    return await this.prismaService.user.update({
-      where: { id },
-      data: { password: hashPassword },
       omit: {
         password: true,
         createdAt: true,
