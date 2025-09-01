@@ -1,17 +1,11 @@
-export const getSkipValue = (page: number, take: number) => {
-  const skip = (page - 1) * take;
-
-  return skip;
+export const getSkipValue = (page: number, take: number): number => {
+  return (page - 1) * take;
 };
 
-export const getTotalPage = (totalItems: number, take: number) => {
-  let totalPage = 0;
-
+export const getTotalPage = (totalItems: number, take: number): number => {
   if (take <= 0) {
-    return totalPage;
+    return 0;
   }
 
-  totalPage = Math.ceil(totalItems / take);
-
-  return totalPage;
+  return Math.ceil(totalItems / take);
 };

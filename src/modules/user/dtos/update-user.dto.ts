@@ -1,24 +1,6 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { Role } from '@prisma/client';
+import { PartialType, OmitType } from '@nestjs/mapped-types';
+import { CreateUserDto } from './create-user.dto';
 
-export class UpdateUserDto {
-  @IsNotEmpty()
-  @IsString()
-  username: string;
-
-  @IsNotEmpty()
-  @IsString()
-  firstName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  lastName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  phoneNumber: string;
-
-  @IsNotEmpty()
-  @IsEnum(Role)
-  role: Role;
-}
+export class UpdateUserDto extends PartialType(
+  OmitType(CreateUserDto, ['password'] as const),
+) {}

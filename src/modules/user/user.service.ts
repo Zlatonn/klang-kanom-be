@@ -18,14 +18,14 @@ import { Prisma, Role } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-  private saltRound: string;
+  private saltRound: number;
   private adminPassword: string;
   private userPassword: string;
   constructor(
     private readonly prismaService: PrismaService,
     private readonly config: ConfigService,
   ) {
-    this.saltRound = this.config.getOrThrow<string>('SALT_ROUND');
+    this.saltRound = Number(this.config.getOrThrow<string>('SALT_ROUND'));
     this.adminPassword = this.config.getOrThrow<string>(
       'DEFAULT_ADMIN_PASSWORD',
     );
@@ -104,7 +104,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User is not found.`);
+      throw new NotFoundException(`User with id "${id}" is not found.`);
     }
 
     return user;
@@ -117,13 +117,14 @@ export class UserService {
       where: {
         username,
       },
+      select: { id: true },
     });
 
     if (user) {
       throw new BadRequestException('Username is already exists.');
     }
 
-    const hashPassword = await bcrypt.hash(password, Number(this.saltRound));
+    const hashPassword = await bcrypt.hash(password, this.saltRound);
 
     const userData = {
       username,
@@ -143,20 +144,24 @@ export class UserService {
   async updateUser(id: number, req: UpdateUserDto) {
     const { username, firstName, lastName, phoneNumber, role } = req;
 
-    const userFound = await this.prismaService.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: { id },
+      select: { username: true },
     });
 
-    if (!userFound) {
-      throw new NotFoundException('User is not found.');
+    if (!user) {
+      throw new NotFoundException(`User with id "${id}" is not found.`);
     }
 
-    const userExists = await this.prismaService.user.findFirst({
-      where: { username, NOT: { id } },
-    });
+    if (user.username !== username) {
+      const usernameExists = await this.prismaService.user.findUnique({
+        where: { username },
+        select: { username: true },
+      });
 
-    if (userExists) {
-      throw new BadRequestException('User is already exists.');
+      if (usernameExists) {
+        throw new BadRequestException('Username is already exists.');
+      }
     }
 
     const userData = {
@@ -177,10 +182,11 @@ export class UserService {
   async deleteUser(id: number) {
     const user = await this.prismaService.user.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!user) {
-      throw new NotFoundException('User is not found.');
+      throw new NotFoundException(`User with id "${id} "is not found.`);
     }
 
     return await this.prismaService.user.delete({
@@ -190,10 +196,13 @@ export class UserService {
   }
 
   async resetPassword(id: number) {
-    const user = await this.prismaService.user.findUnique({ where: { id } });
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
 
     if (!user) {
-      throw new NotFoundException('User is not found.');
+      throw new NotFoundException(`User with id "${id}" is not found.`);
     }
 
     let defaultPassword: string;
@@ -209,10 +218,7 @@ export class UserService {
         throw new BadRequestException('Unsupported role for password reset.');
     }
 
-    const hashPassword = await bcrypt.hash(
-      defaultPassword,
-      Number(this.saltRound),
-    );
+    const hashPassword = await bcrypt.hash(defaultPassword, this.saltRound);
 
     return await this.prismaService.user.update({
       where: { id },
@@ -228,10 +234,13 @@ export class UserService {
   async changePassword(id: number, req: ChangePasswordDto) {
     const { oldPassword, newPassword } = req;
 
-    const user = await this.prismaService.user.findUnique({ where: { id } });
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: { password: true },
+    });
 
     if (!user) {
-      throw new NotFoundException('User is not found.');
+      throw new NotFoundException(`User with id "${id}" is not found.`);
     }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
@@ -245,10 +254,7 @@ export class UserService {
       );
     }
 
-    const hashNewPassword = await bcrypt.hash(
-      newPassword,
-      Number(this.saltRound),
-    );
+    const hashNewPassword = await bcrypt.hash(newPassword, this.saltRound);
 
     return await this.prismaService.user.update({
       where: { id },
