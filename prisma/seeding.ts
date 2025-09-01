@@ -19,7 +19,6 @@ async function main() {
     skipDuplicates: true,
     data: [
       {
-        id: 1,
         username: 'testadmin',
         password: hashAdminPassword,
         firstName: 'test',
@@ -28,7 +27,6 @@ async function main() {
         role: Role.ADMIN,
       },
       {
-        id: 2,
         username: 'testuser',
         password: hashUserPassword,
         firstName: 'test',
