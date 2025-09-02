@@ -1,25 +1,39 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResponseInterceptor } from './utils/interceptors/response.interceptor';
 import { ExceptionsFilter } from './utils/filters/exceptions.filter';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Request validation
+  // enable cors allows request from another domain
+  app.enableCors();
+
+  // using helmet for security
+  app.use(helmet());
+
+  // request validation
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Accept only properties defined in the DTO
-      transform: true, // Automatically transforms the payload into a class instance
-      forbidNonWhitelisted: false, // If any un expected properties are included, it will throw error
+      transform: true, // automatically transforms the payload into a class instance
+      whitelist: true, // accept only properties defined in the DTO
+      forbidNonWhitelisted: true, // if any un expected properties are included, it will throw error
     }),
   );
 
   // using global interceptor, filter
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new ExceptionsFilter());
+
+  // set global prefix & set dafault versioning
+  app.setGlobalPrefix('klang-kanom-backend/api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
 
   const configService = app.get(ConfigService);
   const port = configService.get('PORT') || 3000;
