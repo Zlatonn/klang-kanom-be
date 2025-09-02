@@ -45,7 +45,12 @@ export class AuthService {
       throw new BadRequestException('Password is incorrect.');
     }
 
-    const payload = { id: user.id, username: user.username, role: user.role };
+    const payload = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -61,7 +66,9 @@ export class AuthService {
       where: {
         username,
       },
-      select: { id: true },
+      select: {
+        id: true,
+      },
     });
 
     if (user) {
@@ -69,6 +76,7 @@ export class AuthService {
     }
 
     const hashPassword = await bcrypt.hash(password, this.saltRound);
+
     const userData = {
       username,
       password: hashPassword,
@@ -80,7 +88,11 @@ export class AuthService {
 
     return await this.prismaService.user.create({
       data: userData,
-      omit: { password: true, createdAt: true, updatedAt: true },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }

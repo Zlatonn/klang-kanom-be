@@ -79,7 +79,11 @@ export class UserService {
       orderBy: {
         id: 'desc',
       },
-      omit: { password: true, createdAt: true, updatedAt: true },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     const totalItems = await this.prismaService.user.count({
@@ -99,8 +103,14 @@ export class UserService {
 
   async getUserById(id: number) {
     const user = await this.prismaService.user.findUnique({
-      where: { id },
-      omit: { password: true, createdAt: true, updatedAt: true },
+      where: {
+        id,
+      },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     if (!user) {
@@ -117,7 +127,9 @@ export class UserService {
       where: {
         username,
       },
-      select: { id: true },
+      select: {
+        id: true,
+      },
     });
 
     if (user) {
@@ -137,7 +149,11 @@ export class UserService {
 
     return await this.prismaService.user.create({
       data: userData,
-      omit: { password: true, createdAt: true, updatedAt: true },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -145,8 +161,12 @@ export class UserService {
     const { username, firstName, lastName, phoneNumber, role } = req;
 
     const user = await this.prismaService.user.findUnique({
-      where: { id },
-      select: { username: true },
+      where: {
+        id,
+      },
+      select: {
+        username: true,
+      },
     });
 
     if (!user) {
@@ -155,8 +175,12 @@ export class UserService {
 
     if (user.username !== username) {
       const usernameExists = await this.prismaService.user.findUnique({
-        where: { username },
-        select: { username: true },
+        where: {
+          username,
+        },
+        select: {
+          username: true,
+        },
       });
 
       if (usernameExists) {
@@ -173,16 +197,26 @@ export class UserService {
     };
 
     return await this.prismaService.user.update({
-      where: { id },
+      where: {
+        id,
+      },
       data: userData,
-      omit: { password: true, createdAt: true, updatedAt: true },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
   async deleteUser(id: number) {
     const user = await this.prismaService.user.findUnique({
-      where: { id },
-      select: { id: true },
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+      },
     });
 
     if (!user) {
@@ -190,15 +224,25 @@ export class UserService {
     }
 
     return await this.prismaService.user.delete({
-      where: { id },
-      omit: { password: true, createdAt: true, updatedAt: true },
+      where: {
+        id,
+      },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
   async resetPassword(id: number) {
     const user = await this.prismaService.user.findUnique({
-      where: { id },
-      select: { role: true },
+      where: {
+        id,
+      },
+      select: {
+        role: true,
+      },
     });
 
     if (!user) {
@@ -207,15 +251,10 @@ export class UserService {
 
     let defaultPassword: string;
 
-    switch (user.role) {
-      case Role.ADMIN:
-        defaultPassword = this.adminPassword;
-        break;
-      case Role.USER:
-        defaultPassword = this.userPassword;
-        break;
-      default:
-        throw new BadRequestException('Unsupported role for password reset.');
+    if (user.role === Role.ADMIN) {
+      defaultPassword = this.adminPassword;
+    } else {
+      defaultPassword = this.userPassword;
     }
 
     const hashPassword = await bcrypt.hash(defaultPassword, this.saltRound);
