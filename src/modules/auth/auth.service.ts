@@ -12,20 +12,27 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-  private saltRound: string;
+  private saltRound: number;
   constructor(
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
   ) {
-    this.saltRound = this.config.getOrThrow<string>('SALT_ROUND');
+    this.saltRound = Number(this.config.getOrThrow<string>('SALT_ROUND'));
   }
 
   async login(req: LoginDto) {
     const { username, password } = req;
+
     const user = await this.prismaService.user.findUnique({
       where: {
         username,
+      },
+      select: {
+        id: true,
+        username: true,
+        password: true,
+        role: true,
       },
     });
 
@@ -38,7 +45,12 @@ export class AuthService {
       throw new BadRequestException('Password is incorrect.');
     }
 
-    const payload = { id: user.id, username: user.username, role: user.role };
+    const payload = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
@@ -54,13 +66,17 @@ export class AuthService {
       where: {
         username,
       },
+      select: {
+        id: true,
+      },
     });
 
     if (user) {
       throw new BadRequestException('Username is already exists.');
     }
 
-    const hashPassword = await bcrypt.hash(password, Number(this.saltRound));
+    const hashPassword = await bcrypt.hash(password, this.saltRound);
+
     const userData = {
       username,
       password: hashPassword,
@@ -72,7 +88,11 @@ export class AuthService {
 
     return await this.prismaService.user.create({
       data: userData,
-      omit: { password: true, createdAt: true, updatedAt: true },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }
