@@ -30,7 +30,7 @@ export class MenuService {
 
     const skip = getSkipValue(page, take);
 
-    const result = this.prismaService.menu.findMany({
+    const result = await this.prismaService.menu.findMany({
       where,
       skip,
       take,
@@ -56,7 +56,7 @@ export class MenuService {
       imageName,
     };
 
-    return this.prismaService.menu.create({
+    return await this.prismaService.menu.create({
       data: menuData,
       omit: {
         createdAt: true,

@@ -6,7 +6,13 @@ export const getImageDirectory = () => {
 };
 
 export const safeUnlink = (filePath: string) => {
-  if (existsSync(filePath)) {
+  if (!existsSync(filePath)) {
+    return;
+  }
+
+  try {
     unlinkSync(filePath);
+  } catch (error) {
+    console.log(`Failed to delete file: ${filePath}`, error);
   }
 };
