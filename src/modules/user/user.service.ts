@@ -114,7 +114,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with id "${id}" is not found.`);
+      throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
     return user;
@@ -170,7 +170,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with id "${id}" is not found.`);
+      throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
     if (user.username !== username) {
@@ -246,7 +246,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with id "${id}" is not found.`);
+      throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
     let defaultPassword: string;
@@ -279,7 +279,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with id "${id}" is not found.`);
+      throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
