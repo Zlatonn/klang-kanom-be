@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto } from './dtos/create-menu.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MenuService {
@@ -10,7 +11,7 @@ export class MenuService {
     const { name, menuType, stock } = req;
     const imageName = file.filename;
 
-    const menuData = {
+    const menuData: Prisma.MenuCreateInput = {
       name,
       menuType,
       stock,
