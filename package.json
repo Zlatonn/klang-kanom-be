@@ -12,6 +12,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",
+    "build:docker": " pnpx prisma generate && pnpm run build",
+    "start:docker": " pnpx prisma migrate deploy && pnpx prisma db seed && pnpm run start:prod",
     "seeding": "pnpx prisma db seed",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
