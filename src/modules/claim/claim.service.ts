@@ -284,7 +284,9 @@ export class ClaimService {
   }
 
   async getTopClaimUser(req: GetTopClaimDto) {
-    const { take } = req;
+    const { startDate, endDate, take } = req;
+
+    const onCondition = `AND claims.created_at BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`;
 
     const limit = take ? `LIMIT ${take}` : ``;
 
@@ -294,13 +296,18 @@ export class ClaimService {
         users.first_name,
         users.last_name,
         COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
-      FROM users
-      LEFT JOIN claims ON users.id = claims.user_id
+      FROM
+        users
+        LEFT JOIN claims
+        ON users.id = claims.user_id ${onCondition}
       GROUP BY
         users.id,
         users.first_name,
         users.last_name
-      ORDER BY "totalClaim" DESC
+      ORDER BY 
+        "totalClaim" DESC,
+        users.first_name ASC,
+        users.last_name ASC
       ${limit}
     `;
 
@@ -308,7 +315,9 @@ export class ClaimService {
   }
 
   async getTopClaimMenu(req: GetTopClaimDto) {
-    const { take } = req;
+    const { startDate, endDate, take } = req;
+
+    const onCondition = `AND claims.created_at BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`;
 
     const limit = take ? `LIMIT ${take}` : ``;
 
@@ -318,13 +327,17 @@ export class ClaimService {
       menus.name, 
       menus.image_name,
       COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
-    FROM menus
-    LEFT JOIN claims ON menus.id = claims.menu_id
+    FROM
+      menus
+      LEFT JOIN claims
+      ON menus.id = claims.menu_id ${onCondition}
     GROUP BY
       menus.id,
       menus.name,
       menus.image_name
-    ORDER BY "totalClaim" DESC
+    ORDER BY 
+      "totalClaim" DESC,
+      menus.name ASC
     ${limit}
     `;
 
