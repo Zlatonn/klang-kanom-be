@@ -3,7 +3,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto } from './dtos/create-menu.dto';
 import { GetListMenuDto } from './dtos/get-list-menu.dto';
 import { Prisma } from '@prisma/client';
-import { getSkipValue } from 'src/utils/helpers/pagination.helper';
+import {
+  getSkipValue,
+  getTotalPage,
+} from 'src/utils/helpers/pagination.helper';
 import { join } from 'path';
 import { UpdateMenuDto } from './dtos/update-menu.dto';
 import { getImageDirectory, safeUnlink } from 'src/utils/helpers/file.helper';
@@ -42,7 +45,20 @@ export class MenuService {
         updatedAt: true,
       },
     });
-    return result;
+
+    const totalItems = await this.prismaService.menu.count({
+      where,
+    });
+
+    const totalPage = getTotalPage(totalItems, take);
+
+    return {
+      result,
+      page,
+      take,
+      totalItems,
+      totalPage,
+    };
   }
 
   async createMenu(req: CreateMenuDto, file: Express.Multer.File) {

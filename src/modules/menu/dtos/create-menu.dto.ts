@@ -1,13 +1,6 @@
 import { MenuType } from '@prisma/client';
 import { Type } from 'class-transformer';
-import {
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsPositive,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 
 export class CreateMenuDto {
   @IsNotEmpty()
