@@ -21,19 +21,6 @@ export class ClaimService {
   async createClaims(id: number, req: CreateClaimDto) {
     const { orders } = req;
 
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} is not found.`);
-    }
-
     const menus = await this.prismaService.menu.findMany({
       where: {
         id: {
@@ -217,7 +204,9 @@ export class ClaimService {
         gte: startDate,
         lte: endDate,
       },
-      User: { id },
+      User: {
+        id,
+      },
     };
 
     const and: Prisma.ClaimWhereInput[] = [];
@@ -293,8 +282,8 @@ export class ClaimService {
     const queryRaw = `
       SELECT
         users.id,
-        users.first_name,
-        users.last_name,
+        users.first_name AS "firstName",
+        users.last_name AS "lastName",
         COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
       FROM
         users
@@ -325,7 +314,7 @@ export class ClaimService {
     SELECT 
       menus.id, 
       menus.name, 
-      menus.image_name,
+      menus.image_name AS "imageName",
       COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
     FROM
       menus
