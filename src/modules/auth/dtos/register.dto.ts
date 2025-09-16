@@ -1,5 +1,5 @@
-import { IsEnum, IsHash, IsNotEmpty, IsString } from 'class-validator';
-import { Role } from '@prisma/client';
+import { IsEnum, IsHash, IsNotEmpty, IsString, Matches } from 'class-validator';
+import { Position } from '@prisma/client';
 
 export class RegisterDto {
   @IsNotEmpty()
@@ -21,9 +21,12 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^\d{3}-\d{3}-\d{4}$/, {
+    message: 'Phone must be in the format XXX-XXX-XXXX',
+  })
   phoneNumber: string;
 
   @IsNotEmpty()
-  @IsEnum(Role)
-  role: Role;
+  @IsEnum(Position)
+  position: Position;
 }
