@@ -6,7 +6,6 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { GetListUserDto } from './dtos/get-list-user.dto';
@@ -120,45 +119,8 @@ export class UserService {
     return user;
   }
 
-  async createUser(req: CreateUserDto) {
-    const { username, password, firstName, lastName, phoneNumber, role } = req;
-
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        username,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (user) {
-      throw new BadRequestException('Username is already exists.');
-    }
-
-    const hashPassword = await bcrypt.hash(password, this.saltRound);
-
-    const userData = {
-      username,
-      password: hashPassword,
-      firstName,
-      lastName,
-      phoneNumber,
-      role,
-    };
-
-    return await this.prismaService.user.create({
-      data: userData,
-      omit: {
-        password: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
   async updateUser(id: number, req: UpdateUserDto) {
-    const { username, firstName, lastName, phoneNumber, role } = req;
+    const { username, firstName, lastName, phoneNumber, position, role } = req;
 
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -193,6 +155,7 @@ export class UserService {
       firstName,
       lastName,
       phoneNumber,
+      position,
       role,
     };
 
@@ -201,32 +164,6 @@ export class UserService {
         id,
       },
       data: userData,
-      omit: {
-        password: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
-  async deleteUser(id: number) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with id "${id} "is not found.`);
-    }
-
-    return await this.prismaService.user.delete({
-      where: {
-        id,
-      },
       omit: {
         password: true,
         createdAt: true,
@@ -299,6 +236,32 @@ export class UserService {
       where: { id },
       data: {
         password: hashNewPassword,
+      },
+      omit: {
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id "${id} "is not found.`);
+    }
+
+    return await this.prismaService.user.delete({
+      where: {
+        id,
       },
       omit: {
         password: true,

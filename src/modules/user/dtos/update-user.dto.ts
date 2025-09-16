@@ -1,6 +1,31 @@
-import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
+import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+import { Position, Role } from '@prisma/client';
 
-export class UpdateUserDto extends PartialType(
-  OmitType(CreateUserDto, ['password'] as const),
-) {}
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  username: string;
+
+  @IsOptional()
+  @IsString()
+  firstName: string;
+
+  @IsOptional()
+  @IsString()
+  lastName: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{3}-\d{3}-\d{4}$/, {
+    message: 'Phone must be in the format XXX-XXX-XXXX',
+  })
+  phoneNumber: string;
+
+  @IsOptional()
+  @IsEnum(Position)
+  position: Position;
+
+  @IsOptional()
+  @IsEnum(Role)
+  role: Role;
+}
