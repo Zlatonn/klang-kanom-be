@@ -14,26 +14,39 @@ import { User } from 'src/utils/decorators/user.decorator';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { Role } from '@prisma/client';
-import { GetListUserDto } from './dtos/get-list-user.dto';
+import { GetUserListDto } from './dtos/get-user-list.dto';
+import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Roles(Role.ADMIN)
   @Get('list')
-  getListUser(@Query() req: GetListUserDto) {
-    return this.userService.getListUser(req);
+  getUserList(@Query() req: GetUserListDto) {
+    return this.userService.getUserList(req);
+  }
+
+  @Roles(Role.ADMIN, Role.USER)
+  @Get('me')
+  getUserProfile(@User('id') id: number) {
+    return this.userService.getUserProfile(id);
   }
 
   @Roles(Role.ADMIN)
   @Get(':id')
-  getUserById(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getUserById(id);
+  getUser(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.getUser(id);
+  }
+
+  @Roles(Role.ADMIN, Role.USER)
+  @Patch('me')
+  updateUserProfile(@User('id') id: number, @Body() req: UpdateUserProfileDto) {
+    return this.userService.updateUserProfile(id, req);
   }
 
   @Roles(Role.ADMIN)
-  @Patch('update/:id')
+  @Patch(':id')
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() req: UpdateUserDto,
@@ -41,20 +54,20 @@ export class UserController {
     return this.userService.updateUser(id, req);
   }
 
-  @Roles(Role.ADMIN)
-  @Patch('reset-password/:id')
-  resetPassword(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.resetPassword(id);
-  }
-
   @Roles(Role.ADMIN, Role.USER)
-  @Patch('change-password')
+  @Patch('me/change-password')
   changePassword(@User('id') id: number, @Body() req: ChangePasswordDto) {
     return this.userService.changePassword(id, req);
   }
 
   @Roles(Role.ADMIN)
-  @Delete('delete/:id')
+  @Patch(':id/reset-password')
+  resetPassword(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.resetPassword(id);
+  }
+
+  @Roles(Role.ADMIN)
+  @Delete(':id')
   deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUser(id);
   }

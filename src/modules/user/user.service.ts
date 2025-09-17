@@ -8,12 +8,13 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-import { GetListUserDto } from './dtos/get-list-user.dto';
+import { GetUserListDto } from './dtos/get-user-list.dto';
 import {
   getSkipValue,
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
 import { Prisma, Role } from '@prisma/client';
+import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -31,14 +32,13 @@ export class UserService {
     this.userPassword = this.config.getOrThrow<string>('DEFAULT_USER_PASSWORD');
   }
 
-  // Get list user service
-  async getListUser(req: GetListUserDto) {
-    const { page, take, role, search } = req;
+  async getUserList(req: GetUserListDto) {
+    const { page, take, position, search } = req;
 
     const where: Prisma.UserWhereInput = {};
 
-    if (role) {
-      where.role = role;
+    if (position) {
+      where.position = position;
     }
 
     if (search) {
@@ -100,7 +100,21 @@ export class UserService {
     };
   }
 
-  async getUserById(id: number) {
+  async getUserProfile(id: number) {
+    return await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      omit: {
+        password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async getUser(id: number) {
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
@@ -119,8 +133,33 @@ export class UserService {
     return user;
   }
 
+  async updateUserProfile(id: number, req: UpdateUserProfileDto) {
+    const { firstName, lastName, phoneNumber, position } = req;
+
+    const userData = {
+      firstName,
+      lastName,
+      phoneNumber,
+      position,
+    };
+
+    return await this.prismaService.user.update({
+      where: {
+        id,
+      },
+      data: userData,
+      omit: {
+        username: true,
+        password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   async updateUser(id: number, req: UpdateUserDto) {
-    const { username, firstName, lastName, phoneNumber, position, role } = req;
+    const { firstName, lastName, phoneNumber, position, role } = req;
 
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -135,23 +174,7 @@ export class UserService {
       throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
-    if (user.username !== username) {
-      const usernameExists = await this.prismaService.user.findUnique({
-        where: {
-          username,
-        },
-        select: {
-          username: true,
-        },
-      });
-
-      if (usernameExists) {
-        throw new BadRequestException('Username is already exists.');
-      }
-    }
-
     const userData = {
-      username,
       firstName,
       lastName,
       phoneNumber,
@@ -165,41 +188,7 @@ export class UserService {
       },
       data: userData,
       omit: {
-        password: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
-  async resetPassword(id: number) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} is not found.`);
-    }
-
-    let defaultPassword: string;
-
-    if (user.role === Role.ADMIN) {
-      defaultPassword = this.adminPassword;
-    } else {
-      defaultPassword = this.userPassword;
-    }
-
-    const hashPassword = await bcrypt.hash(defaultPassword, this.saltRound);
-
-    return await this.prismaService.user.update({
-      where: { id },
-      data: { password: hashPassword },
-      omit: {
+        username: true,
         password: true,
         createdAt: true,
         updatedAt: true,
@@ -239,6 +228,43 @@ export class UserService {
       },
       omit: {
         password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async resetPassword(id: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} is not found.`);
+    }
+
+    let defaultPassword: string;
+
+    if (user.role === Role.ADMIN) {
+      defaultPassword = this.adminPassword;
+    } else {
+      defaultPassword = this.userPassword;
+    }
+
+    const hashPassword = await bcrypt.hash(defaultPassword, this.saltRound);
+
+    return await this.prismaService.user.update({
+      where: { id },
+      data: { password: hashPassword },
+      omit: {
+        password: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },

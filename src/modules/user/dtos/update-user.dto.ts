@@ -4,10 +4,6 @@ import { Position, Role } from '@prisma/client';
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  username: string;
-
-  @IsOptional()
-  @IsString()
   firstName: string;
 
   @IsOptional()
