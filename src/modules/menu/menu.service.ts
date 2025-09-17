@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto } from './dtos/create-menu.dto';
-import { GetListMenuDto } from './dtos/get-list-menu.dto';
+import { GetMenuListDto } from './dtos/get-menu-list.dto';
 import { Prisma } from '@prisma/client';
 import {
   getSkipValue,
@@ -15,7 +15,27 @@ import { getImageDirectory, safeUnlink } from 'src/utils/helpers/file.helper';
 export class MenuService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getListMenu(req: GetListMenuDto) {
+  async createMenu(req: CreateMenuDto, file: Express.Multer.File) {
+    const { name, menuType, stock } = req;
+    const imageName = file.filename;
+
+    const menuData: Prisma.MenuCreateInput = {
+      name,
+      menuType,
+      stock,
+      imageName,
+    };
+
+    return await this.prismaService.menu.create({
+      data: menuData,
+      omit: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async getMenuList(req: GetMenuListDto) {
     const { page, take, menuType, search } = req;
 
     const where: Prisma.MenuWhereInput = {};
@@ -59,26 +79,6 @@ export class MenuService {
       totalItems,
       totalPage,
     };
-  }
-
-  async createMenu(req: CreateMenuDto, file: Express.Multer.File) {
-    const { name, menuType, stock } = req;
-    const imageName = file.filename;
-
-    const menuData: Prisma.MenuCreateInput = {
-      name,
-      menuType,
-      stock,
-      imageName,
-    };
-
-    return await this.prismaService.menu.create({
-      data: menuData,
-      omit: {
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
   }
 
   async updateMenu(id: number, req: UpdateMenuDto, file?: Express.Multer.File) {

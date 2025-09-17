@@ -9,7 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class GetListMenuDto {
+export class GetMenuListDto {
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
