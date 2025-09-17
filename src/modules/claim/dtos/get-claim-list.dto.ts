@@ -1,14 +1,17 @@
+import { MenuType } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   IsDate,
+  IsEnum,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsPositive,
+  IsString,
 } from 'class-validator';
 import { getEndDate, getStartDate } from 'src/utils/helpers/date.helper';
 
-export class GetTopClaimDto {
+export class GetClaimListDto {
   @IsNotEmpty()
   @Transform(({ value }) => getStartDate(value))
   @IsDate()
@@ -19,9 +22,23 @@ export class GetTopClaimDto {
   @IsDate()
   endDate: Date;
 
-  @IsOptional()
+  @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
   @IsPositive()
-  take?: number;
+  page: number;
+
+  @IsNotEmpty()
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  take: number;
+
+  @IsOptional()
+  @IsEnum(MenuType)
+  menuType?: MenuType;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

@@ -4,21 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateClaimDto } from './dtos/create-claim.dto';
+import { CreateClaimsDto } from './dtos/create-claims.dto';
 import { Prisma } from '@prisma/client';
-import { GetListClaimDto } from './dtos/get-list-claim.dto';
+import { GetClaimListDto } from './dtos/get-claim-list.dto';
 import {
   getSkipValue,
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
-import { GetClaimByUserDto } from './dtos/get-claim-by-user.dto';
-import { GetTopClaimDto } from './dtos/get-top-claim.dto';
+import { GetClaimsUserDto } from './dtos/get-claims-user.dto';
+import { GetClaimsTopDto } from './dtos/get-claim-top.dto';
 
 @Injectable()
 export class ClaimService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createClaims(id: number, req: CreateClaimDto) {
+  async createClaims(id: number, req: CreateClaimsDto) {
     const { orders } = req;
 
     const menus = await this.prismaService.menu.findMany({
@@ -104,7 +104,7 @@ export class ClaimService {
     return result[0];
   }
 
-  async getListClaim(req: GetListClaimDto) {
+  async getClaimList(req: GetClaimListDto) {
     const { startDate, endDate, page, take, search, menuType } = req;
 
     const where: Prisma.ClaimWhereInput = {
@@ -196,7 +196,7 @@ export class ClaimService {
     };
   }
 
-  async getClaimsByUser(id: number, req: GetClaimByUserDto) {
+  async getClaimsUser(id: number, req: GetClaimsUserDto) {
     const { startDate, endDate, page, take, search, menuType } = req;
 
     const where: Prisma.ClaimWhereInput = {
@@ -272,7 +272,7 @@ export class ClaimService {
     };
   }
 
-  async getTopClaimUser(req: GetTopClaimDto) {
+  async getClaimsTopUser(req: GetClaimsTopDto) {
     const { startDate, endDate, take } = req;
 
     const onCondition = `AND claims.created_at BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`;
@@ -303,7 +303,7 @@ export class ClaimService {
     return await this.prismaService.$queryRawUnsafe(queryRaw);
   }
 
-  async getTopClaimMenu(req: GetTopClaimDto) {
+  async getClaimsTopMenu(req: GetClaimsTopDto) {
     const { startDate, endDate, take } = req;
 
     const onCondition = `AND claims.created_at BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`;
