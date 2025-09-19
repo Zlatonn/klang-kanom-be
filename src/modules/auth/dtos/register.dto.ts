@@ -1,5 +1,6 @@
 import { IsEnum, IsHash, IsNotEmpty, IsString, Matches } from 'class-validator';
 import { Position } from '@prisma/client';
+import { REGEX_PHONE_NUMBER } from 'src/common/constants/regex';
 
 export class RegisterDto {
   @IsNotEmpty()
@@ -21,7 +22,7 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @IsString()
-  @Matches(/^\d{3}-\d{3}-\d{4}$/, {
+  @Matches(REGEX_PHONE_NUMBER, {
     message: 'Phone must be in the format XXX-XXX-XXXX',
   })
   phoneNumber: string;
