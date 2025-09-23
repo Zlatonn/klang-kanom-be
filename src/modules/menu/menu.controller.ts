@@ -17,7 +17,7 @@ import { CreateMenuDto } from './dtos/create-menu.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { GetMenuListDto } from './dtos/get-menu-list.dto';
+import { GetMenusDto } from './dtos/get-menus.dto';
 import { UpdateMenuDto } from './dtos/update-menu.dto';
 
 @Controller('menus')
@@ -40,9 +40,9 @@ export class MenuController {
   }
 
   @Roles(Role.ADMIN, Role.USER)
-  @Get('list')
-  getMenuList(@Query() req: GetMenuListDto) {
-    return this.menuService.getMenuList(req);
+  @Get()
+  getMenus(@Query() req: GetMenusDto) {
+    return this.menuService.getMenus(req);
   }
 
   @Roles(Role.ADMIN)

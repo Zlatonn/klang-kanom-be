@@ -1,12 +1,11 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ClaimService } from './claim.service';
 import { CreateClaimsDto } from './dtos/create-claims.dto';
-import { GetClaimListDto } from './dtos/get-claim-list.dto';
+import { GetClaimsDto } from './dtos/get-claims.dto';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { GetClaimsUserDto } from './dtos/get-claims-user.dto';
 import { User } from 'src/utils/decorators/user.decorator';
-import { GetClaimsTopDto } from './dtos/get-claim-top.dto';
+import { GetClaimsTopDto } from './dtos/get-claims-top.dto';
 
 @Controller('claims')
 export class ClaimController {
@@ -19,15 +18,9 @@ export class ClaimController {
   }
 
   @Roles(Role.ADMIN)
-  @Get('list')
-  getClaimList(@Query() req: GetClaimListDto) {
-    return this.claimService.getClaimList(req);
-  }
-
-  @Roles(Role.ADMIN, Role.USER)
-  @Get('me')
-  getClaimsUser(@User('id') id: number, @Query() req: GetClaimsUserDto) {
-    return this.claimService.getClaimsUser(id, req);
+  @Get()
+  getClaims(@Query() req: GetClaimsDto) {
+    return this.claimService.getClaims(req);
   }
 
   @Roles(Role.ADMIN, Role.USER)

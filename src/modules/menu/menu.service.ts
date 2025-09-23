@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto } from './dtos/create-menu.dto';
-import { GetMenuListDto } from './dtos/get-menu-list.dto';
+import { GetMenusDto } from './dtos/get-menus.dto';
 import { Prisma } from '@prisma/client';
 import {
   getSkipValue,
@@ -35,7 +35,7 @@ export class MenuService {
     });
   }
 
-  async getMenuList(req: GetMenuListDto) {
+  async getMenus(req: GetMenusDto) {
     const { page, take, menuType, search } = req;
 
     const where: Prisma.MenuWhereInput = {};

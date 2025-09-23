@@ -6,13 +6,12 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClaimsDto } from './dtos/create-claims.dto';
 import { Prisma } from '@prisma/client';
-import { GetClaimListDto } from './dtos/get-claim-list.dto';
+import { GetClaimsDto } from './dtos/get-claims.dto';
 import {
   getSkipValue,
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
-import { GetClaimsUserDto } from './dtos/get-claims-user.dto';
-import { GetClaimsTopDto } from './dtos/get-claim-top.dto';
+import { GetClaimsTopDto } from './dtos/get-claims-top.dto';
 
 @Injectable()
 export class ClaimService {
@@ -104,7 +103,7 @@ export class ClaimService {
     return result[0];
   }
 
-  async getClaimList(req: GetClaimListDto) {
+  async getClaims(req: GetClaimsDto) {
     const { startDate, endDate, page, take, search, menuType } = req;
 
     const where: Prisma.ClaimWhereInput = {
@@ -168,82 +167,6 @@ export class ClaimService {
             id: true,
             name: true,
             menuType: true,
-          },
-        },
-      },
-      omit: {
-        updatedAt: true,
-        userId: true,
-        menuId: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    const totalItems = await this.prismaService.claim.count({
-      where,
-    });
-
-    const totalPage = getTotalPage(totalItems, take);
-
-    return {
-      result,
-      page,
-      take,
-      totalItems,
-      totalPage,
-    };
-  }
-
-  async getClaimsUser(id: number, req: GetClaimsUserDto) {
-    const { startDate, endDate, page, take, search, menuType } = req;
-
-    const where: Prisma.ClaimWhereInput = {
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-      User: {
-        id,
-      },
-    };
-
-    const and: Prisma.ClaimWhereInput[] = [];
-
-    if (menuType) {
-      and.push({
-        Menu: { menuType },
-      });
-    }
-
-    if (search) {
-      and.push({
-        Menu: {
-          name: {
-            contains: search,
-            mode: 'insensitive',
-          },
-        },
-      });
-    }
-
-    if (and.length) {
-      where.AND = and;
-    }
-
-    const skip = getSkipValue(page, take);
-
-    const result = await this.prismaService.claim.findMany({
-      where,
-      skip,
-      take,
-      include: {
-        Menu: {
-          omit: {
-            stock: true,
-            createdAt: true,
-            updatedAt: true,
           },
         },
       },

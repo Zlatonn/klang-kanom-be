@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { getEndDate, getStartDate } from 'src/utils/helpers/date.helper';
 
-export class GetClaimsUserDto {
+export class GetUserClaimsDto {
   @IsNotEmpty()
   @Transform(({ value }) => getStartDate(value))
   @IsDate()

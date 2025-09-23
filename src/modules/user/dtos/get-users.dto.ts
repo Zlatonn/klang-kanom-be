@@ -9,7 +9,7 @@ import {
 import { Type } from 'class-transformer';
 import { Position } from '@prisma/client';
 
-export class GetUserListDto {
+export class GetUsersDto {
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()

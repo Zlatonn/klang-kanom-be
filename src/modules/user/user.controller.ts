@@ -14,17 +14,18 @@ import { User } from 'src/utils/decorators/user.decorator';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { Role } from '@prisma/client';
-import { GetUserListDto } from './dtos/get-user-list.dto';
+import { GetUsersDto } from './dtos/get-users.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Roles(Role.ADMIN)
-  @Get('list')
-  getUserList(@Query() req: GetUserListDto) {
-    return this.userService.getUserList(req);
+  @Get()
+  getUsers(@Query() req: GetUsersDto) {
+    return this.userService.getUsers(req);
   }
 
   @Roles(Role.ADMIN, Role.USER)
@@ -37,6 +38,12 @@ export class UserController {
   @Get(':id')
   getUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.getUser(id);
+  }
+
+  @Roles(Role.ADMIN, Role.USER)
+  @Get('me/claims')
+  getUserClaims(@User('id') id: number, @Body() req: GetUserClaimsDto) {
+    return this.userService.getUserClaims(id, req);
   }
 
   @Roles(Role.ADMIN, Role.USER)

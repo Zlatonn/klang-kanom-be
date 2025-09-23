@@ -1,6 +1,7 @@
 import { MenuType } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsDate,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -8,8 +9,19 @@ import {
   IsPositive,
   IsString,
 } from 'class-validator';
+import { getEndDate, getStartDate } from 'src/utils/helpers/date.helper';
 
-export class GetMenuListDto {
+export class GetClaimsDto {
+  @IsNotEmpty()
+  @Transform(({ value }) => getStartDate(value))
+  @IsDate()
+  startDate: Date;
+
+  @IsNotEmpty()
+  @Transform(({ value }) => getEndDate(value))
+  @IsDate()
+  endDate: Date;
+
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()

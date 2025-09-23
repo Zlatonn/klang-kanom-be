@@ -8,13 +8,14 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-import { GetUserListDto } from './dtos/get-user-list.dto';
+import { GetUsersDto } from './dtos/get-users.dto';
 import {
   getSkipValue,
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
 import { Prisma, Role } from '@prisma/client';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
 
 @Injectable()
 export class UserService {
@@ -32,7 +33,7 @@ export class UserService {
     this.userPassword = this.config.getOrThrow<string>('DEFAULT_USER_PASSWORD');
   }
 
-  async getUserList(req: GetUserListDto) {
+  async getUsers(req: GetUsersDto) {
     const { page, take, position, search } = req;
 
     const where: Prisma.UserWhereInput = {};
@@ -131,6 +132,82 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async getUserClaims(id: number, req: GetUserClaimsDto) {
+    const { startDate, endDate, page, take, search, menuType } = req;
+
+    const where: Prisma.ClaimWhereInput = {
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+      User: {
+        id,
+      },
+    };
+
+    const and: Prisma.ClaimWhereInput[] = [];
+
+    if (menuType) {
+      and.push({
+        Menu: { menuType },
+      });
+    }
+
+    if (search) {
+      and.push({
+        Menu: {
+          name: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      });
+    }
+
+    if (and.length) {
+      where.AND = and;
+    }
+
+    const skip = getSkipValue(page, take);
+
+    const result = await this.prismaService.claim.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        Menu: {
+          omit: {
+            stock: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+      omit: {
+        updatedAt: true,
+        userId: true,
+        menuId: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    const totalItems = await this.prismaService.claim.count({
+      where,
+    });
+
+    const totalPage = getTotalPage(totalItems, take);
+
+    return {
+      result,
+      page,
+      take,
+      totalItems,
+      totalPage,
+    };
   }
 
   async updateUserProfile(id: number, req: UpdateUserProfileDto) {
