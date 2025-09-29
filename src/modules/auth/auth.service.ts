@@ -61,7 +61,8 @@ export class AuthService {
   }
 
   async register(req: RegisterDto) {
-    const { username, password, firstName, lastName, phoneNumber, role } = req;
+    const { username, password, firstName, lastName, phoneNumber, position } =
+      req;
 
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -84,7 +85,7 @@ export class AuthService {
       firstName,
       lastName,
       phoneNumber,
-      role,
+      position,
     };
 
     return await this.prismaService.user.create({

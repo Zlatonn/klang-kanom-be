@@ -7,9 +7,9 @@ import {
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { Role } from '@prisma/client';
+import { Position } from '@prisma/client';
 
-export class GetListUserDto {
+export class GetUsersDto {
   @IsNotEmpty()
   @Type(() => Number)
   @IsInt()
@@ -23,8 +23,8 @@ export class GetListUserDto {
   take: number;
 
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsEnum(Position)
+  position?: Position;
 
   @IsOptional()
   @IsString()

@@ -17,21 +17,15 @@ import { CreateMenuDto } from './dtos/create-menu.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { GetListMenuDto } from './dtos/get-list-menu.dto';
+import { GetMenusDto } from './dtos/get-menus.dto';
 import { UpdateMenuDto } from './dtos/update-menu.dto';
 
-@Controller('menu')
+@Controller('menus')
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
-  @Roles(Role.ADMIN, Role.USER)
-  @Get('list')
-  getListMenu(@Query() req: GetListMenuDto) {
-    return this.menuService.getListMenu(req);
-  }
-
   @Roles(Role.ADMIN)
-  @Post('create')
+  @Post()
   @UseInterceptors(FileInterceptor('image'))
   createMenu(
     @Body() req: CreateMenuDto,
@@ -45,8 +39,14 @@ export class MenuController {
     return this.menuService.createMenu(req, file);
   }
 
+  @Roles(Role.ADMIN, Role.USER)
+  @Get()
+  getMenus(@Query() req: GetMenusDto) {
+    return this.menuService.getMenus(req);
+  }
+
   @Roles(Role.ADMIN)
-  @Patch('update/:id')
+  @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
   updateMenu(
     @Param('id', ParseIntPipe) id: number,
@@ -58,7 +58,7 @@ export class MenuController {
   }
 
   @Roles(Role.ADMIN)
-  @Delete('delete/:id')
+  @Delete(':id')
   deleteMenu(@Param('id', ParseIntPipe) id: number) {
     return this.menuService.deleteMenu(id);
   }

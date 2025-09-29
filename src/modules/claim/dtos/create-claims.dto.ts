@@ -20,7 +20,7 @@ class OrderDto {
   quantity: number;
 }
 
-export class CreateClaimDto {
+export class CreateClaimsDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderDto)

@@ -6,15 +6,16 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-import { GetListUserDto } from './dtos/get-list-user.dto';
+import { GetUsersDto } from './dtos/get-users.dto';
 import {
   getSkipValue,
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
 import { Prisma, Role } from '@prisma/client';
+import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
+import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
 
 @Injectable()
 export class UserService {
@@ -32,14 +33,13 @@ export class UserService {
     this.userPassword = this.config.getOrThrow<string>('DEFAULT_USER_PASSWORD');
   }
 
-  // Get list user service
-  async getListUser(req: GetListUserDto) {
-    const { page, take, role, search } = req;
+  async getUsers(req: GetUsersDto) {
+    const { page, take, position, search } = req;
 
     const where: Prisma.UserWhereInput = {};
 
-    if (role) {
-      where.role = role;
+    if (position) {
+      where.position = position;
     }
 
     if (search) {
@@ -101,7 +101,21 @@ export class UserService {
     };
   }
 
-  async getUserById(id: number) {
+  async getUserProfile(id: number) {
+    return await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      omit: {
+        password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async getUser(id: number) {
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
@@ -120,37 +134,101 @@ export class UserService {
     return user;
   }
 
-  async createUser(req: CreateUserDto) {
-    const { username, password, firstName, lastName, phoneNumber, role } = req;
+  async getUserClaims(id: number, req: GetUserClaimsDto) {
+    const { startDate, endDate, page, take, search, menuType } = req;
 
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        username,
+    const where: Prisma.ClaimWhereInput = {
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
       },
-      select: {
-        id: true,
+      User: {
+        id,
+      },
+    };
+
+    const and: Prisma.ClaimWhereInput[] = [];
+
+    if (menuType) {
+      and.push({
+        Menu: { menuType },
+      });
+    }
+
+    if (search) {
+      and.push({
+        Menu: {
+          name: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        },
+      });
+    }
+
+    if (and.length) {
+      where.AND = and;
+    }
+
+    const skip = getSkipValue(page, take);
+
+    const result = await this.prismaService.claim.findMany({
+      where,
+      skip,
+      take,
+      include: {
+        Menu: {
+          omit: {
+            stock: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+      omit: {
+        updatedAt: true,
+        userId: true,
+        menuId: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
-    if (user) {
-      throw new BadRequestException('Username is already exists.');
-    }
+    const totalItems = await this.prismaService.claim.count({
+      where,
+    });
 
-    const hashPassword = await bcrypt.hash(password, this.saltRound);
+    const totalPage = getTotalPage(totalItems, take);
+
+    return {
+      result,
+      page,
+      take,
+      totalItems,
+      totalPage,
+    };
+  }
+
+  async updateUserProfile(id: number, req: UpdateUserProfileDto) {
+    const { firstName, lastName, phoneNumber, position } = req;
 
     const userData = {
-      username,
-      password: hashPassword,
       firstName,
       lastName,
       phoneNumber,
-      role,
+      position,
     };
 
-    return await this.prismaService.user.create({
+    return await this.prismaService.user.update({
+      where: {
+        id,
+      },
       data: userData,
       omit: {
+        username: true,
         password: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -158,7 +236,7 @@ export class UserService {
   }
 
   async updateUser(id: number, req: UpdateUserDto) {
-    const { username, firstName, lastName, phoneNumber, role } = req;
+    const { firstName, lastName, phoneNumber, position, role } = req;
 
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -173,26 +251,11 @@ export class UserService {
       throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
-    if (user.username !== username) {
-      const usernameExists = await this.prismaService.user.findUnique({
-        where: {
-          username,
-        },
-        select: {
-          username: true,
-        },
-      });
-
-      if (usernameExists) {
-        throw new BadRequestException('Username is already exists.');
-      }
-    }
-
     const userData = {
-      username,
       firstName,
       lastName,
       phoneNumber,
+      position,
       role,
     };
 
@@ -202,67 +265,7 @@ export class UserService {
       },
       data: userData,
       omit: {
-        password: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
-  async deleteUser(id: number) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with id "${id} "is not found.`);
-    }
-
-    return await this.prismaService.user.delete({
-      where: {
-        id,
-      },
-      omit: {
-        password: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
-  async resetPassword(id: number) {
-    const user = await this.prismaService.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} is not found.`);
-    }
-
-    let defaultPassword: string;
-
-    if (user.role === Role.ADMIN) {
-      defaultPassword = this.adminPassword;
-    } else {
-      defaultPassword = this.userPassword;
-    }
-
-    const hashPassword = await bcrypt.hash(defaultPassword, this.saltRound);
-
-    return await this.prismaService.user.update({
-      where: { id },
-      data: { password: hashPassword },
-      omit: {
+        username: true,
         password: true,
         createdAt: true,
         updatedAt: true,
@@ -299,6 +302,69 @@ export class UserService {
       where: { id },
       data: {
         password: hashNewPassword,
+      },
+      omit: {
+        password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async resetPassword(id: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} is not found.`);
+    }
+
+    let defaultPassword: string;
+
+    if (user.role === Role.ADMIN) {
+      defaultPassword = this.adminPassword;
+    } else {
+      defaultPassword = this.userPassword;
+    }
+
+    const hashPassword = await bcrypt.hash(defaultPassword, this.saltRound);
+
+    return await this.prismaService.user.update({
+      where: { id },
+      data: { password: hashPassword },
+      omit: {
+        password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async deleteUser(id: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with id "${id} "is not found.`);
+    }
+
+    return await this.prismaService.user.delete({
+      where: {
+        id,
       },
       omit: {
         password: true,
