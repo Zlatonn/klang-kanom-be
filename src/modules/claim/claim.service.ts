@@ -207,6 +207,7 @@ export class ClaimService {
         users.id,
         users.first_name AS "firstName",
         users.last_name AS "lastName",
+        users.image_name AS "imageName",
         COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
       FROM
         users
