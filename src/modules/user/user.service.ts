@@ -16,6 +16,8 @@ import {
 import { Prisma, Role } from '@prisma/client';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
+import { join } from 'path';
+import { getImageDirectory, safeUnlink } from 'src/utils/helpers/file.helper';
 
 @Injectable()
 export class UserService {
@@ -210,17 +212,44 @@ export class UserService {
     };
   }
 
-  async updateUserProfile(id: number, req: UpdateUserProfileDto) {
+  async updateUserProfile(
+    id: number,
+    req: UpdateUserProfileDto,
+    file?: Express.Multer.File,
+  ) {
     const { firstName, lastName, phoneNumber, position } = req;
+    const newImageName = file?.filename;
 
-    const userData = {
+    const imageDir = getImageDirectory();
+    let imagePath: string;
+
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        imageName: true,
+      },
+    });
+
+    if (!user) {
+      if (newImageName) {
+        imagePath = join(imageDir, newImageName);
+        safeUnlink(imagePath);
+      }
+
+      throw new NotFoundException(`User with id ${id} is not found.`);
+    }
+
+    const userData: Prisma.UserUpdateInput = {
       firstName,
       lastName,
       phoneNumber,
       position,
+      imageName: newImageName,
     };
 
-    return await this.prismaService.user.update({
+    const updated = await this.prismaService.user.update({
       where: {
         id,
       },
@@ -233,33 +262,50 @@ export class UserService {
         updatedAt: true,
       },
     });
+
+    if (user.imageName && newImageName) {
+      imagePath = join(imageDir, user.imageName);
+      safeUnlink(imagePath);
+    }
+
+    return updated;
   }
 
-  async updateUser(id: number, req: UpdateUserDto) {
+  async updateUser(id: number, req: UpdateUserDto, file?: Express.Multer.File) {
     const { firstName, lastName, phoneNumber, position, role } = req;
+    const newImageName = file?.filename;
+
+    const imageDir = getImageDirectory();
+    let imagePath: string;
 
     const user = await this.prismaService.user.findUnique({
       where: {
         id,
       },
       select: {
-        username: true,
+        imageName: true,
       },
     });
 
     if (!user) {
+      if (newImageName) {
+        imagePath = join(imageDir, newImageName);
+        safeUnlink(imagePath);
+      }
+
       throw new NotFoundException(`User with id ${id} is not found.`);
     }
 
-    const userData = {
+    const userData: Prisma.UserUpdateInput = {
       firstName,
       lastName,
       phoneNumber,
       position,
       role,
+      imageName: newImageName,
     };
 
-    return await this.prismaService.user.update({
+    const updated = await this.prismaService.user.update({
       where: {
         id,
       },
@@ -271,6 +317,13 @@ export class UserService {
         updatedAt: true,
       },
     });
+
+    if (user.imageName && newImageName) {
+      imagePath = join(imageDir, user.imageName);
+      safeUnlink(imagePath);
+    }
+
+    return updated;
   }
 
   async changePassword(id: number, req: ChangePasswordDto) {
@@ -341,7 +394,6 @@ export class UserService {
       data: { password: hashPassword },
       omit: {
         password: true,
-        role: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -355,6 +407,7 @@ export class UserService {
       },
       select: {
         id: true,
+        imageName: true,
       },
     });
 
@@ -362,7 +415,7 @@ export class UserService {
       throw new NotFoundException(`User with id "${id} "is not found.`);
     }
 
-    return await this.prismaService.user.delete({
+    const deleted = await this.prismaService.user.delete({
       where: {
         id,
       },
@@ -372,5 +425,12 @@ export class UserService {
         updatedAt: true,
       },
     });
+
+    if (user.imageName) {
+      const imagePath = join(getImageDirectory(), user.imageName);
+      safeUnlink(imagePath);
+    }
+
+    return deleted;
   }
 }

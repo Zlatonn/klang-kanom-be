@@ -7,6 +7,8 @@ import {
   ParseIntPipe,
   Patch,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Roles } from 'src/utils/decorators/roles.decorator';
@@ -17,6 +19,7 @@ import { Role } from '@prisma/client';
 import { GetUsersDto } from './dtos/get-users.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UserController {
@@ -48,17 +51,26 @@ export class UserController {
 
   @Roles(Role.ADMIN, Role.USER)
   @Patch('me')
-  updateUserProfile(@User('id') id: number, @Body() req: UpdateUserProfileDto) {
-    return this.userService.updateUserProfile(id, req);
+  @UseInterceptors(FileInterceptor('image'))
+  updateUserProfile(
+    @User('id') id: number,
+    @Body() req: UpdateUserProfileDto,
+    @UploadedFile()
+    file: Express.Multer.File,
+  ) {
+    return this.userService.updateUserProfile(id, req, file);
   }
 
   @Roles(Role.ADMIN)
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('image'))
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() req: UpdateUserDto,
+    @UploadedFile()
+    file: Express.Multer.File,
   ) {
-    return this.userService.updateUser(id, req);
+    return this.userService.updateUser(id, req, file);
   }
 
   @Roles(Role.ADMIN, Role.USER)
