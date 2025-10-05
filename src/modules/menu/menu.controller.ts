@@ -19,14 +19,20 @@ import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { GetMenusDto } from './dtos/get-menus.dto';
 import { UpdateMenuDto } from './dtos/update-menu.dto';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('menus')
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Roles(Role.ADMIN)
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: CreateMenuDto,
+  })
   createMenu(
     @Body() req: CreateMenuDto,
     @UploadedFile(
@@ -47,7 +53,11 @@ export class MenuController {
 
   @Roles(Role.ADMIN)
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateMenuDto,
+  })
   updateMenu(
     @Param('id', ParseIntPipe) id: number,
     @Body() req: UpdateMenuDto,
