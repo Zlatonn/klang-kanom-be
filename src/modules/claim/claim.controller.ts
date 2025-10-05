@@ -6,7 +6,9 @@ import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { User } from 'src/utils/decorators/user.decorator';
 import { GetClaimsTopDto } from './dtos/get-claims-top.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('claims')
 export class ClaimController {
   constructor(private readonly claimService: ClaimService) {}

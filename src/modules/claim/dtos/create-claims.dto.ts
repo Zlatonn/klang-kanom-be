@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayUnique,
@@ -9,11 +10,13 @@ import {
 } from 'class-validator';
 
 class OrderDto {
+  @ApiProperty({ required: true, example: 1 })
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
   menuId: number;
 
+  @ApiProperty({ required: true, example: 10 })
   @IsNotEmpty()
   @IsInt()
   @IsPositive()
@@ -21,6 +24,7 @@ class OrderDto {
 }
 
 export class CreateClaimsDto {
+  @ApiProperty({ type: [OrderDto] })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => OrderDto)
