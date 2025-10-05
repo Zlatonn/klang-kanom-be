@@ -20,7 +20,9 @@ import { GetUsersDto } from './dtos/get-users.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -45,13 +47,17 @@ export class UserController {
 
   @Roles(Role.ADMIN, Role.USER)
   @Get('me/claims')
-  getUserClaims(@User('id') id: number, @Body() req: GetUserClaimsDto) {
+  getUserClaims(@User('id') id: number, @Query() req: GetUserClaimsDto) {
     return this.userService.getUserClaims(id, req);
   }
 
   @Roles(Role.ADMIN, Role.USER)
   @Patch('me')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateUserProfileDto,
+  })
   updateUserProfile(
     @User('id') id: number,
     @Body() req: UpdateUserProfileDto,
@@ -63,7 +69,11 @@ export class UserController {
 
   @Roles(Role.ADMIN)
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateUserDto,
+  })
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() req: UpdateUserDto,
