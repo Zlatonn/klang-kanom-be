@@ -21,7 +21,7 @@ services:
     ports:
       - 13986:13986
     volumes:
-      - ./public/image:/public/image
+      - ./public/images:/public/images
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
