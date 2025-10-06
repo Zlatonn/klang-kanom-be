@@ -28,7 +28,7 @@ export class CreateMenuDto {
   @Min(0)
   stock: number;
 
-  @ApiProperty({ required: false, type: 'string', format: 'binary' })
+  @ApiProperty({ required: true, type: 'string', format: 'binary' })
   @IsOptional()
   @IsString()
   file?: string;

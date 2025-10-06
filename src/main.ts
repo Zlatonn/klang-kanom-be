@@ -4,7 +4,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ResponseInterceptor } from './utils/interceptors/response.interceptor';
 import { ExceptionsFilter } from './utils/filters/exceptions.filter';
-import helmet, { contentSecurityPolicy } from 'helmet';
+import helmet from 'helmet';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
