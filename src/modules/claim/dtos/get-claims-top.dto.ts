@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
   IsDate,
@@ -6,19 +7,26 @@ import {
   IsOptional,
   IsPositive,
 } from 'class-validator';
-import { getEndDate, getStartDate } from 'src/utils/helpers/date.helper';
+import {
+  formatDateYYYYMMDD,
+  getEndDate,
+  getStartDate,
+} from 'src/utils/helpers/date.helper';
 
 export class GetClaimsTopDto {
+  @ApiProperty({ required: true, example: formatDateYYYYMMDD(new Date()) })
   @IsNotEmpty()
   @Transform(({ value }) => getStartDate(value))
   @IsDate()
   startDate: Date;
 
+  @ApiProperty({ required: true, example: formatDateYYYYMMDD(new Date()) })
   @IsNotEmpty()
   @Transform(({ value }) => getEndDate(value))
   @IsDate()
   endDate: Date;
 
+  @ApiProperty({ required: false, example: 3 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

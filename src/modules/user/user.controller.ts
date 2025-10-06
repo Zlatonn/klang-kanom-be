@@ -20,38 +20,54 @@ import { GetUsersDto } from './dtos/get-users.dto';
 import { UpdateUserProfileDto } from './dtos/update-user-profile.dto';
 import { GetUserClaimsDto } from './dtos/get-user-claims.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+} from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Roles(Role.ADMIN)
   @Get()
+  @ApiOperation({ summary: 'List users' })
   getUsers(@Query() req: GetUsersDto) {
     return this.userService.getUsers(req);
   }
 
   @Roles(Role.ADMIN, Role.USER)
+  @ApiOperation({ summary: 'Get my profile' })
   @Get('me')
   getUserProfile(@User('id') id: number) {
     return this.userService.getUserProfile(id);
   }
 
   @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get user by id' })
   @Get(':id')
   getUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.getUser(id);
   }
 
   @Roles(Role.ADMIN, Role.USER)
+  @ApiOperation({ summary: 'List my claims' })
   @Get('me/claims')
-  getUserClaims(@User('id') id: number, @Body() req: GetUserClaimsDto) {
+  getUserClaims(@User('id') id: number, @Query() req: GetUserClaimsDto) {
     return this.userService.getUserClaims(id, req);
   }
 
   @Roles(Role.ADMIN, Role.USER)
+  @ApiOperation({ summary: 'Update my profile' })
   @Patch('me')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateUserProfileDto,
+  })
   updateUserProfile(
     @User('id') id: number,
     @Body() req: UpdateUserProfileDto,
@@ -62,8 +78,13 @@ export class UserController {
   }
 
   @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Update user by id' })
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateUserDto,
+  })
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() req: UpdateUserDto,
@@ -74,6 +95,7 @@ export class UserController {
   }
 
   @Roles(Role.ADMIN, Role.USER)
+  @ApiOperation({ summary: 'Change my password' })
   @Patch('me/change-password')
   changePassword(@User('id') id: number, @Body() req: ChangePasswordDto) {
     return this.userService.changePassword(id, req);
@@ -81,12 +103,14 @@ export class UserController {
 
   @Roles(Role.ADMIN)
   @Patch(':id/reset-password')
+  @ApiOperation({ summary: 'Reset user password' })
   resetPassword(@Param('id', ParseIntPipe) id: number) {
     return this.userService.resetPassword(id);
   }
 
   @Roles(Role.ADMIN)
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete user by id' })
   deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUser(id);
   }

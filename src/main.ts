@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { ResponseInterceptor } from './utils/interceptors/response.interceptor';
 import { ExceptionsFilter } from './utils/filters/exceptions.filter';
 import helmet from 'helmet';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -35,9 +36,26 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  // swagger Config
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Klang Kanom Backend')
+    .setDescription('API documentation')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  // create swagger document
+  const documentFactory = () =>
+    SwaggerModule.createDocument(app, swaggerConfig);
+
+  // create swagger endpoint
+  SwaggerModule.setup('docs', app, documentFactory);
+
   const configService = app.get(ConfigService);
+
   const port = configService.get('PORT') || 3000;
 
   await app.listen(port);
 }
+
 bootstrap();
