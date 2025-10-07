@@ -10,7 +10,7 @@ export class TaskService {
   private readonly logger = new Logger(TaskService.name);
   constructor(private readonly prismaService: PrismaService) {}
 
-  @Cron('* * * * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async cleanupUnlinkedImages() {
     const userImages = await this.prismaService.user.findMany({
       where: {
