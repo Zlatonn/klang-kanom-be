@@ -10,6 +10,7 @@ import { RolesGuard } from './utils/guards/roles.guard';
 import { UserModule } from './modules/user/user.module';
 import { MenuModule } from './modules/menu/menu.module';
 import { ClaimModule } from './modules/claim/claim.module';
+import { TaskModule } from './modules/task/task.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ClaimModule } from './modules/claim/claim.module';
     UserModule,
     MenuModule,
     ClaimModule,
+    TaskModule,
   ],
   controllers: [],
   providers: [
