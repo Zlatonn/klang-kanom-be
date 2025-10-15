@@ -44,7 +44,7 @@ export class ClaimController {
 
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Dashboard claims by department' })
-  @Get('dashboard/department')
+  @Get('dashboard/position')
   getClaimsDashboardByPosition(@Query() req: GetClaimsDashboardPositionDto) {
     return this.claimService.getClaimsDashboardByPosition(req);
   }
