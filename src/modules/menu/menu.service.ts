@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMenuDto } from './dtos/create-menu.dto';
 import { GetMenusDto } from './dtos/get-menus.dto';
@@ -139,11 +143,22 @@ export class MenuService {
       },
       select: {
         imageName: true,
+        Claim: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
     if (!menu) {
       throw new NotFoundException(`Menu with id ${id} is not found.`);
+    }
+
+    if (menu.Claim) {
+      throw new BadRequestException(
+        `Cannot delete a menu that has related data.`,
+      );
     }
 
     const deleted = await this.prismaService.menu.delete({

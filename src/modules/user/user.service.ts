@@ -414,11 +414,22 @@ export class UserService {
       select: {
         id: true,
         imageName: true,
+        Claim: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
     if (!user) {
       throw new NotFoundException(`User with id ${targetId} is not found.`);
+    }
+
+    if (user.Claim) {
+      throw new BadRequestException(
+        `Cannot delete an account that has related data.`,
+      );
     }
 
     const deleted = await this.prismaService.user.delete({
