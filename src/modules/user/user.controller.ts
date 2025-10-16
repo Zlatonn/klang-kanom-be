@@ -111,7 +111,10 @@ export class UserController {
   @Roles(Role.ADMIN)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete user by id' })
-  deleteUser(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.deleteUser(id);
+  deleteUser(
+    @User('id') ownId: number,
+    @Param('id', ParseIntPipe) targetId: number,
+  ) {
+    return this.userService.deleteUser(ownId, targetId);
   }
 }
