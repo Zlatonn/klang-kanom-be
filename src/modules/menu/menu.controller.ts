@@ -58,7 +58,7 @@ export class MenuController {
     return this.menuService.getMenus(req);
   }
 
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get menu by id' })
   @Get(':id')
   getMenu(@Param('id', ParseIntPipe) id: number) {
