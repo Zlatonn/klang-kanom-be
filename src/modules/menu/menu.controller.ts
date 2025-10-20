@@ -58,6 +58,13 @@ export class MenuController {
     return this.menuService.getMenus(req);
   }
 
+  @Roles(Role.ADMIN, Role.USER)
+  @ApiOperation({ summary: 'Get menu by id' })
+  @Get(':id')
+  getMenu(@Param('id', ParseIntPipe) id: number) {
+    return this.menuService.getMenu(id);
+  }
+
   @Roles(Role.ADMIN)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))

@@ -85,6 +85,24 @@ export class MenuService {
     };
   }
 
+  async getMenu(id: number) {
+    const menu = await this.prismaService.menu.findUnique({
+      where: {
+        id,
+      },
+      omit: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!menu) {
+      throw new NotFoundException(`Menu with id ${id} is not found.`);
+    }
+
+    return menu;
+  }
+
   async updateMenu(id: number, req: UpdateMenuDto, file?: Express.Multer.File) {
     const { name, menuType, stock } = req;
     const newImageName = file?.filename;
