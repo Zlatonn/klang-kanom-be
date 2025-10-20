@@ -78,8 +78,6 @@ enum Position {
   FINANCE
   MARKETING
   SALES
-  PO
-  PM
   BA
   SA
   UXUI

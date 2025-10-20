@@ -400,24 +400,41 @@ export class UserService {
     });
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(ownId: number, targetId: number) {
+    if (ownId === targetId) {
+      throw new BadRequestException(
+        `Can not allowed to delete your own account.`,
+      );
+    }
+
     const user = await this.prismaService.user.findUnique({
       where: {
-        id,
+        id: targetId,
       },
       select: {
         id: true,
         imageName: true,
+        Claim: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
     if (!user) {
-      throw new NotFoundException(`User with id "${id} "is not found.`);
+      throw new NotFoundException(`User with id ${targetId} is not found.`);
+    }
+
+    if (user.Claim) {
+      throw new BadRequestException(
+        `Cannot delete an account that has related data.`,
+      );
     }
 
     const deleted = await this.prismaService.user.delete({
       where: {
-        id,
+        id: targetId,
       },
       omit: {
         password: true,

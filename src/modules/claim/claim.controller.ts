@@ -7,6 +7,7 @@ import { Role } from '@prisma/client';
 import { User } from 'src/utils/decorators/user.decorator';
 import { GetClaimsTopDto } from './dtos/get-claims-top.dto';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { GetClaimsDashboardPositionDto } from './dtos/get-claims-dashboard-department';
 
 @ApiBearerAuth()
 @Controller('claims')
@@ -39,5 +40,12 @@ export class ClaimController {
   @Get('top-menu')
   getClaimsTopMenu(@Query() req: GetClaimsTopDto) {
     return this.claimService.getClaimsTopMenu(req);
+  }
+
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Dashboard claims by department' })
+  @Get('dashboard/position')
+  getClaimsDashboardByPosition(@Query() req: GetClaimsDashboardPositionDto) {
+    return this.claimService.getClaimsDashboardByPosition(req);
   }
 }

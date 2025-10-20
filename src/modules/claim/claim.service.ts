@@ -12,6 +12,7 @@ import {
   getTotalPage,
 } from 'src/utils/helpers/pagination.helper';
 import { GetClaimsTopDto } from './dtos/get-claims-top.dto';
+import { GetClaimsDashboardPositionDto } from './dtos/get-claims-dashboard-department';
 
 @Injectable()
 export class ClaimService {
@@ -208,7 +209,7 @@ export class ClaimService {
         users.first_name AS "firstName",
         users.last_name AS "lastName",
         users.image_name AS "imageName",
-        COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
+        COALESCE(SUM(claims.quantity),0)::INT AS "totalClaims"
       FROM
         users
         LEFT JOIN claims
@@ -239,7 +240,7 @@ export class ClaimService {
       menus.id, 
       menus.name, 
       menus.image_name AS "imageName",
-      COALESCE(SUM(claims.quantity),0)::INT AS "totalClaim"
+      COALESCE(SUM(claims.quantity),0)::INT AS "totalClaims"
     FROM
       menus
       LEFT JOIN claims
@@ -252,6 +253,39 @@ export class ClaimService {
       "totalClaim" DESC,
       menus.name ASC
     ${limit}
+    `;
+
+    return await this.prismaService.$queryRawUnsafe(queryRaw);
+  }
+
+  async getClaimsDashboardByPosition(req: GetClaimsDashboardPositionDto) {
+    const { startDate, endDate } = req;
+
+    const onCondition = `AND claims.created_at BETWEEN '${startDate.toISOString()}' AND '${endDate.toISOString()}'`;
+
+    const queryRaw = `
+    SELECT
+      pg_enum.enumlabel AS "position",
+      COALESCE(SUM(claims.quantity) FILTER (WHERE menus.menu_type = 'SNACK'),0)::INT AS "totalClaimsSnack",
+      COALESCE(SUM(claims.quantity) FILTER (WHERE menus.menu_type = 'FOOD'),0)::INT AS "totalClaimsFood",
+      COALESCE(SUM(claims.quantity) FILTER (WHERE menus.menu_type = 'DRINK'),0)::INT AS "totalClaimsDrink",
+      COALESCE(SUM(claims.quantity), 0)::INT AS "totalClaimsAll"
+    FROM
+      pg_enum
+      INNER JOIN pg_type 
+      ON pg_type.oid = pg_enum.enumtypid
+      AND pg_type.typname = 'Position'
+      LEFT JOIN users 
+      ON users.position::TEXT = pg_enum.enumlabel::TEXT
+      LEFT JOIN claims 
+      ON users.id = claims.user_id ${onCondition}  
+      LEFT JOIN menus 
+      ON claims.menu_id = menus.id 
+    GROUP BY
+      pg_enum.enumlabel
+    ORDER BY
+      "totalClaimsAll" DESC,
+      "position" ASC
     `;
 
     return await this.prismaService.$queryRawUnsafe(queryRaw);
