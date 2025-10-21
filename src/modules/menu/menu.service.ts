@@ -173,7 +173,7 @@ export class MenuService {
       throw new NotFoundException(`Menu with id ${id} is not found.`);
     }
 
-    if (menu.Claim) {
+    if (menu.Claim.length > 0) {
       throw new BadRequestException(
         `Cannot delete a menu that has related data.`,
       );

@@ -426,7 +426,7 @@ export class UserService {
       throw new NotFoundException(`User with id ${targetId} is not found.`);
     }
 
-    if (user.Claim) {
+    if (user.Claim.length > 0) {
       throw new BadRequestException(
         `Cannot delete an account that has related data.`,
       );
