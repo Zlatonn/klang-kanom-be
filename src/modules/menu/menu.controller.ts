@@ -59,6 +59,13 @@ export class MenuController {
   }
 
   @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get menu by id' })
+  @Get(':id')
+  getMenu(@Param('id', ParseIntPipe) id: number) {
+    return this.menuService.getMenu(id);
+  }
+
+  @Roles(Role.ADMIN)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
