@@ -219,7 +219,7 @@ export class ClaimService {
         users.first_name,
         users.last_name
       ORDER BY 
-        "totalClaim" DESC,
+        "totalClaims" DESC,
         users.first_name ASC,
         users.last_name ASC
       ${limit}
@@ -250,7 +250,7 @@ export class ClaimService {
       menus.name,
       menus.image_name
     ORDER BY 
-      "totalClaim" DESC,
+      "totalClaims" DESC,
       menus.name ASC
     ${limit}
     `;
