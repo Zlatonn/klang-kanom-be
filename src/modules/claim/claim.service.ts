@@ -66,6 +66,7 @@ export class ClaimService {
             id: true,
             firstName: true,
             lastName: true,
+            position: true,
           },
         },
         Menu: {
@@ -161,6 +162,7 @@ export class ClaimService {
             id: true,
             firstName: true,
             lastName: true,
+            position: true,
           },
         },
         Menu: {
