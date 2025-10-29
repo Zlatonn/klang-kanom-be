@@ -21,6 +21,12 @@ import { TaskModule } from './modules/task/task.module';
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public/images'),
       serveRoot: '/images',
+      serveStaticOptions: {
+        setHeaders: (res) => {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        },
+      },
     }),
     PrismaModule,
     AuthModule,
